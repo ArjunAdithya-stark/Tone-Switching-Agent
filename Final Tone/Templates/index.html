@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tone Switcher</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a4731, #2d6a4f, #52b788, #95d5b2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+
+    .card {
+      background: #f0faf4;
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 620px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      border: 1.5px solid #b7e4c7;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 6px;
+      background: linear-gradient(135deg, #1b4332, #52b788);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #52b788;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1b4332;
+      display: block;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #b7e4c7;
+      border-radius: 12px;
+      font-size: 15px;
+      resize: vertical;
+      outline: none;
+      transition: border 0.2s;
+      font-family: inherit;
+      color: #1b4332;
+      background: #ffffff;
+    }
+
+    textarea:focus { border-color: #2d6a4f; }
+
+    .tones {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+
+    .tone-btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.15s, opacity 0.15s;
+      color: white;
+      opacity: 0.6;
+    }
+
+    .tone-btn:hover { opacity: 0.85; transform: scale(1.05); }
+    .tone-btn.active { opacity: 1; transform: scale(1.08); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
+    .t1 { background: linear-gradient(135deg, #52b788, #1b4332); }
+    .t2 { background: linear-gradient(135deg, #2d6a4f, #95d5b2); }
+    .t3 { background: linear-gradient(135deg, #1a4731, #52b788); }
+    .t4 { background: linear-gradient(135deg, #74c69d, #1b4332); }
+    .t5 { background: linear-gradient(135deg, #40916c, #d8f3dc); color: #1b4332; }
+
+    #rewrite-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1b4332, #52b788);
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      letter-spacing: 0.5px;
+    }
+
+    #rewrite-btn:hover { opacity: 0.9; transform: scale(1.01); }
+    #rewrite-btn:disabled { opacity: 0.5; cursor: default; transform: none; }
+
+    .result-box {
+      margin-top: 24px;
+      padding: 18px;
+      background: #d8f3dc;
+      border-radius: 14px;
+      border-left: 5px solid #2d6a4f;
+      font-size: 15px;
+      color: #1b4332;
+      line-height: 1.7;
+      display: none;
+    }
+
+    .result-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2d6a4f;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .copy-btn {
+      margin-top: 10px;
+      background: none;
+      border: none;
+      font-size: 13px;
+      color: #1b4332;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .copy-btn:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🌿 Tone Switcher</h1>
+    <p class="subtitle">Rewrite any sentence in your chosen tone using AI</p>
+
+    <label>Your Text</label>
+    <textarea id="input-text" rows="3" placeholder="Type a sentence here..."></textarea>
+
+    <label>Select Tone</label>
+    <div class="tones">
+      <button class="tone-btn t1 active" data-tone="friendly">😊 Friendly</button>
+      <button class="tone-btn t2" data-tone="formal">🎩 Formal</button>
+      <button class="tone-btn t3" data-tone="professional">💼 Professional</button>
+      <button class="tone-btn t4" data-tone="beginner">📖 Beginner</button>
+      <button class="tone-btn t5" data-tone="polite">🙏 Polite</button>
+    </div>
+
+    <button id="rewrite-btn" onclick="rewrite()">🌿 Rewrite</button>
+
+    <div class="result-box" id="result-box">
+      <div class="result-label" id="result-label">Result</div>
+      <div id="result-text"></div>
+      <button class="copy-btn" onclick="copyText()">📋 Copy</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedTone = 'friendly';
+
+    document.querySelectorAll('.tone-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedTone = btn.dataset.tone;
+      });
+    });
+
+    async function rewrite() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) return alert('Please enter some text.');
+
+      const btn = document.getElementById('rewrite-btn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Rewriting...';
+
+      const res = await fetch('/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, tone: selectedTone })
+      });
+
+      const data = await res.json();
+      document.getElementById('result-text').textContent = data.result;
+      document.getElementById('result-label').textContent = `Result — ${selectedTone} tone`;
+      document.getElementById('result-box').style.display = 'block';
+
+      btn.disabled = false;
+      btn.textContent = '🌿 Rewrite';
+    }
+
+    function copyText() {
+      const t = document.getElementById('result-text').textContent;
+      navigator.clipboard.writeText(t);
+    }
+  </script>
+</body>
+</html>
